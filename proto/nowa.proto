@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package nowaproto;
 
-option go_package = "github.com/booneng/nowaproto/proto";
+option go_package = "github.com/booneng/nowaproto/proto/gen";
 
 message Restaurant {
     // Unique identifier for the restaurant.
