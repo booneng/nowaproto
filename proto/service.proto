@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-import "nowa.proto";
-
-option go_package = "github.com/booneng/nowaproto";
-
 package nowaproto;
+
+import "proto/nowa.proto";
+
+option go_package = "github.com/booneng/nowaproto/proto";
 
 // Request message for getting a restaurant object.
 message GetRestaurantRequest {
