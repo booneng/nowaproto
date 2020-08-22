@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package nowaproto;
 
-import "proto/nowa.proto";
+import "nowa.proto";
 
 option go_package = "github.com/booneng/nowaproto/proto";
 

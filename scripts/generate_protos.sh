@@ -16,8 +16,8 @@ docker run \
     --volume "${ROOT}:${ROOT}" \
     --workdir "${ROOT}" \
     "${PROTOC_GO_CONTAINER_IMAGE}" \
-        --proto_path=${ROOT} \
-        --go_out=plugins=grpc,paths=source_relative:. \
+        --proto_path=${ROOT}/proto \
+        --go_out=plugins=grpc,paths=source_relative:./proto/gen \
         ${ROOT}/proto/*.proto
 
 docker run \
@@ -26,8 +26,8 @@ docker run \
     --volume "${ROOT}:${ROOT}" \
     --workdir "${ROOT}" \
     "${PROTOC_DART_CONTAINER_IMAGE}" \
-        --proto_path=${ROOT} \
-        --dart_out=grpc:. \
+        --proto_path=${ROOT}/proto \
+        --dart_out=grpc:./proto/gen \
         ${ROOT}/proto/*.proto
 
 echo "Protos regenerated (OK)"
