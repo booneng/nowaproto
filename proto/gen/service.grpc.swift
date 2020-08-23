@@ -28,11 +28,35 @@ import SwiftProtobuf
 
 
 /// Usage: instantiate Nowaproto_NowaClient, then call methods of this protocol to make API calls.
-public protocol Nowaproto_NowaClientProtocol {
-  func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, callOptions: CallOptions?) -> UnaryCall<Nowaproto_GetRestaurantRequest, Nowaproto_GetRestaurantResponse>
+public protocol Nowaproto_NowaClientProtocol: GRPCClient {
+  func getRestaurant(
+    _ request: Nowaproto_GetRestaurantRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nowaproto_GetRestaurantRequest, Nowaproto_GetRestaurantResponse>
+
 }
 
-public final class Nowaproto_NowaClient: GRPCClient, Nowaproto_NowaClientProtocol {
+extension Nowaproto_NowaClientProtocol {
+
+  /// Gets a restaurant using the restaurant ID.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetRestaurant.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func getRestaurant(
+    _ request: Nowaproto_GetRestaurantRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nowaproto_GetRestaurantRequest, Nowaproto_GetRestaurantResponse> {
+    return self.makeUnaryCall(
+      path: "/nowaproto.Nowa/GetRestaurant",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions
+    )
+  }
+}
+
+public final class Nowaproto_NowaClient: Nowaproto_NowaClientProtocol {
   public let channel: GRPCChannel
   public var defaultCallOptions: CallOptions
 
@@ -45,19 +69,6 @@ public final class Nowaproto_NowaClient: GRPCClient, Nowaproto_NowaClientProtoco
     self.channel = channel
     self.defaultCallOptions = defaultCallOptions
   }
-
-  /// Gets a restaurant using the restaurant ID.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to GetRestaurant.
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, callOptions: CallOptions? = nil) -> UnaryCall<Nowaproto_GetRestaurantRequest, Nowaproto_GetRestaurantResponse> {
-    return self.makeUnaryCall(path: "/nowaproto.Nowa/GetRestaurant",
-                              request: request,
-                              callOptions: callOptions ?? self.defaultCallOptions)
-  }
-
 }
 
 /// To build a server, implement a class that conforms to this protocol.
@@ -74,7 +85,7 @@ extension Nowaproto_NowaProvider {
   public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
     case "GetRestaurant":
-      return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
+      return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.getRestaurant(request: request, context: context)
         }
@@ -84,9 +95,4 @@ extension Nowaproto_NowaProvider {
     }
   }
 }
-
-
-// Provides conformance to `GRPCPayload` for request and response messages
-extension Nowaproto_GetRestaurantRequest: GRPCProtobufPayload {}
-extension Nowaproto_GetRestaurantResponse: GRPCProtobufPayload {}
 
