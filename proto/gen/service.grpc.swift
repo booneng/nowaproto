@@ -20,82 +20,73 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import Dispatch
 import Foundation
-import SwiftGRPC
+import GRPC
+import NIO
+import NIOHTTP1
 import SwiftProtobuf
 
-public protocol Nowaproto_NowaGetRestaurantCall: ClientCallUnary {}
 
-fileprivate final class Nowaproto_NowaGetRestaurantCallBase: ClientCallUnaryBase<Nowaproto_GetRestaurantRequest, Nowaproto_GetRestaurantResponse>, Nowaproto_NowaGetRestaurantCall {
-  override class var method: String { return "/nowaproto.Nowa/GetRestaurant" }
+/// Usage: instantiate Nowaproto_NowaClient, then call methods of this protocol to make API calls.
+public protocol Nowaproto_NowaClientProtocol {
+  func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, callOptions: CallOptions?) -> UnaryCall<Nowaproto_GetRestaurantRequest, Nowaproto_GetRestaurantResponse>
 }
 
+public final class Nowaproto_NowaClient: GRPCClient, Nowaproto_NowaClientProtocol {
+  public let channel: GRPCChannel
+  public var defaultCallOptions: CallOptions
 
-/// Instantiate Nowaproto_NowaServiceClient, then call methods of this protocol to make API calls.
-public protocol Nowaproto_NowaService: ServiceClient {
-  /// Synchronous. Unary.
-  func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, metadata customMetadata: Metadata) throws -> Nowaproto_GetRestaurantResponse
-  /// Asynchronous. Unary.
-  @discardableResult
-  func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, metadata customMetadata: Metadata, completion: @escaping (Nowaproto_GetRestaurantResponse?, CallResult) -> Void) throws -> Nowaproto_NowaGetRestaurantCall
-
-}
-
-public extension Nowaproto_NowaService {
-  /// Synchronous. Unary.
-  func getRestaurant(_ request: Nowaproto_GetRestaurantRequest) throws -> Nowaproto_GetRestaurantResponse {
-    return try self.getRestaurant(request, metadata: self.metadata)
-  }
-  /// Asynchronous. Unary.
-  @discardableResult
-  func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, completion: @escaping (Nowaproto_GetRestaurantResponse?, CallResult) -> Void) throws -> Nowaproto_NowaGetRestaurantCall {
-    return try self.getRestaurant(request, metadata: self.metadata, completion: completion)
+  /// Creates a client for the nowaproto.Nowa service.
+  ///
+  /// - Parameters:
+  ///   - channel: `GRPCChannel` to the service host.
+  ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
+  public init(channel: GRPCChannel, defaultCallOptions: CallOptions = CallOptions()) {
+    self.channel = channel
+    self.defaultCallOptions = defaultCallOptions
   }
 
-}
-
-public final class Nowaproto_NowaServiceClient: ServiceClientBase, Nowaproto_NowaService {
-  /// Synchronous. Unary.
-  public func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, metadata customMetadata: Metadata) throws -> Nowaproto_GetRestaurantResponse {
-    return try Nowaproto_NowaGetRestaurantCallBase(channel)
-      .run(request: request, metadata: customMetadata)
-  }
-  /// Asynchronous. Unary.
-  @discardableResult
-  public func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, metadata customMetadata: Metadata, completion: @escaping (Nowaproto_GetRestaurantResponse?, CallResult) -> Void) throws -> Nowaproto_NowaGetRestaurantCall {
-    return try Nowaproto_NowaGetRestaurantCallBase(channel)
-      .start(request: request, metadata: customMetadata, completion: completion)
+  /// Gets a restaurant using the restaurant ID.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetRestaurant.
+  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func getRestaurant(_ request: Nowaproto_GetRestaurantRequest, callOptions: CallOptions? = nil) -> UnaryCall<Nowaproto_GetRestaurantRequest, Nowaproto_GetRestaurantResponse> {
+    return self.makeUnaryCall(path: "/nowaproto.Nowa/GetRestaurant",
+                              request: request,
+                              callOptions: callOptions ?? self.defaultCallOptions)
   }
 
 }
 
 /// To build a server, implement a class that conforms to this protocol.
-/// If one of the methods returning `ServerStatus?` returns nil,
-/// it is expected that you have already returned a status to the client by means of `session.close`.
-public protocol Nowaproto_NowaProvider: ServiceProvider {
-  func getRestaurant(request: Nowaproto_GetRestaurantRequest, session: Nowaproto_NowaGetRestaurantSession) throws -> Nowaproto_GetRestaurantResponse
+public protocol Nowaproto_NowaProvider: CallHandlerProvider {
+  /// Gets a restaurant using the restaurant ID.
+  func getRestaurant(request: Nowaproto_GetRestaurantRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nowaproto_GetRestaurantResponse>
 }
 
 extension Nowaproto_NowaProvider {
   public var serviceName: String { return "nowaproto.Nowa" }
 
-  /// Determines and calls the appropriate request handler, depending on the request's method.
-  /// Throws `HandleMethodError.unknownMethod` for methods not handled by this service.
-  public func handleMethod(_ method: String, handler: Handler) throws -> ServerStatus? {
-    switch method {
-    case "/nowaproto.Nowa/GetRestaurant":
-      return try Nowaproto_NowaGetRestaurantSessionBase(
-        handler: handler,
-        providerBlock: { try self.getRestaurant(request: $0, session: $1 as! Nowaproto_NowaGetRestaurantSessionBase) })
-          .run()
-    default:
-      throw HandleMethodError.unknownMethod
+  /// Determines, calls and returns the appropriate request handler, depending on the request's method.
+  /// Returns nil for methods not handled by this service.
+  public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
+    switch methodName {
+    case "GetRestaurant":
+      return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
+        return { request in
+          self.getRestaurant(request: request, context: context)
+        }
+      }
+
+    default: return nil
     }
   }
 }
 
-public protocol Nowaproto_NowaGetRestaurantSession: ServerSessionUnary {}
 
-fileprivate final class Nowaproto_NowaGetRestaurantSessionBase: ServerSessionUnaryBase<Nowaproto_GetRestaurantRequest, Nowaproto_GetRestaurantResponse>, Nowaproto_NowaGetRestaurantSession {}
+// Provides conformance to `GRPCPayload` for request and response messages
+extension Nowaproto_GetRestaurantRequest: GRPCProtobufPayload {}
+extension Nowaproto_GetRestaurantResponse: GRPCProtobufPayload {}
 
